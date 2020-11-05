@@ -4,14 +4,14 @@
 #
 Name     : lzo
 Version  : 2.10
-Release  : 22
+Release  : 23
 URL      : http://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz
 Source0  : http://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz
 Summary  : LZO - a real-time data compression library
 Group    : Development/Tools
 License  : GPL-2.0 GPL-2.0+
-Requires: lzo-lib
-Requires: lzo-doc
+Requires: lzo-lib = %{version}-%{release}
+Requires: lzo-license = %{version}-%{release}
 
 %description
 ============================================================================
@@ -21,8 +21,9 @@ LZO -- a real-time data compression library
 %package dev
 Summary: dev components for the lzo package.
 Group: Development
-Requires: lzo-lib
-Provides: lzo-devel
+Requires: lzo-lib = %{version}-%{release}
+Provides: lzo-devel = %{version}-%{release}
+Requires: lzo = %{version}-%{release}
 
 %description dev
 dev components for the lzo package.
@@ -39,37 +40,53 @@ doc components for the lzo package.
 %package lib
 Summary: lib components for the lzo package.
 Group: Libraries
+Requires: lzo-license = %{version}-%{release}
 
 %description lib
 lib components for the lzo package.
 
 
+%package license
+Summary: license components for the lzo package.
+Group: Default
+
+%description license
+license components for the lzo package.
+
+
 %prep
 %setup -q -n lzo-2.10
+cd %{_builddir}/lzo-2.10
 
 %build
-export LANG=C
-export SOURCE_DATE_EPOCH=1488817319
+export http_proxy=http://127.0.0.1:9/
+export https_proxy=http://127.0.0.1:9/
+export no_proxy=localhost,127.0.0.1,0.0.0.0
+export LANG=C.UTF-8
+export SOURCE_DATE_EPOCH=1604608936
+export GCC_IGNORE_WERROR=1
 export AR=gcc-ar
 export RANLIB=gcc-ranlib
 export NM=gcc-nm
-export CFLAGS="$CFLAGS -O3 -falign-functions=32 -ffat-lto-objects -flto -fno-semantic-interposition "
-export FCFLAGS="$CFLAGS -O3 -falign-functions=32 -ffat-lto-objects -flto -fno-semantic-interposition "
-export FFLAGS="$CFLAGS -O3 -falign-functions=32 -ffat-lto-objects -flto -fno-semantic-interposition "
-export CXXFLAGS="$CXXFLAGS -O3 -falign-functions=32 -ffat-lto-objects -flto -fno-semantic-interposition "
+export CFLAGS="$CFLAGS -O3 -falign-functions=32 -ffat-lto-objects -flto=4 -fno-math-errno -fno-semantic-interposition -fno-trapping-math "
+export FCFLAGS="$FFLAGS -O3 -falign-functions=32 -ffat-lto-objects -flto=4 -fno-math-errno -fno-semantic-interposition -fno-trapping-math "
+export FFLAGS="$FFLAGS -O3 -falign-functions=32 -ffat-lto-objects -flto=4 -fno-math-errno -fno-semantic-interposition -fno-trapping-math "
+export CXXFLAGS="$CXXFLAGS -O3 -falign-functions=32 -ffat-lto-objects -flto=4 -fno-math-errno -fno-semantic-interposition -fno-trapping-math "
 %configure --disable-static --enable-shared
-make V=1  %{?_smp_mflags}
+make  %{?_smp_mflags}
 
 %check
-export LANG=C
+export LANG=C.UTF-8
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
-export no_proxy=localhost
+export no_proxy=localhost,127.0.0.1,0.0.0.0
 make test
 
 %install
-export SOURCE_DATE_EPOCH=1488817319
+export SOURCE_DATE_EPOCH=1604608936
 rm -rf %{buildroot}
+mkdir -p %{buildroot}/usr/share/package-licenses/lzo
+cp %{_builddir}/lzo-2.10/COPYING %{buildroot}/usr/share/package-licenses/lzo/4cc77b90af91e615a64ae04893fdffa7939db84c
 %make_install
 
 %files
@@ -94,10 +111,14 @@ rm -rf %{buildroot}
 /usr/lib64/pkgconfig/lzo2.pc
 
 %files doc
-%defattr(-,root,root,-)
+%defattr(0644,root,root,0755)
 %doc /usr/share/doc/lzo/*
 
 %files lib
 %defattr(-,root,root,-)
 /usr/lib64/liblzo2.so.2
 /usr/lib64/liblzo2.so.2.0.0
+
+%files license
+%defattr(0644,root,root,0755)
+/usr/share/package-licenses/lzo/4cc77b90af91e615a64ae04893fdffa7939db84c
